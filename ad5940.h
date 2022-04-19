@@ -11,13 +11,13 @@
  * By using this software you agree to the terms of the associated
  * Analog Devices Software License Agreement.
 **/
-
 #ifndef _AD5940_H_
 #define _AD5940_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #include "math.h"
 #include "string.h"
 #include "stdio.h"
@@ -2992,19 +2992,19 @@ extern "C" {
 #define AFEINTSRC_DFTRDY            0x00000002  /**<  Bit1, DFT Result Ready Status */
 #define AFEINTSRC_SINC2RDY          0x00000004  /**<  Bit2, SINC2/Low Pass Filter Result Status */
 #define AFEINTSRC_TEMPRDY           0x00000008  /**<  Bit3, Temp Sensor Result Ready */
-#define AFEINTSRC_ADCMINERR         0x00000010	/**<  Bit4, ADC Minimum Value */
-#define AFEINTSRC_ADCMAXERR         0x00000020	/**<  Bit5, ADC Maximum Value */
+#define AFEINTSRC_ADCMINERR         0x00000010  /**<  Bit4, ADC Minimum Value */
+#define AFEINTSRC_ADCMAXERR         0x00000020  /**<  Bit5, ADC Maximum Value */
 #define AFEINTSRC_ADCDIFFERR        0x00000040  /**<  Bit6, ADC Delta Ready */
-#define AFEINTSRC_MEANRDY           0x00000080	/**<  Bit7, Mean Result Ready */
-#define AFEINTSRC_VARRDY            0x00000100	/**<  Bit8, Variance Result Ready */
+#define AFEINTSRC_MEANRDY           0x00000080  /**<  Bit7, Mean Result Ready */
+#define AFEINTSRC_VARRDY            0x00000100  /**<  Bit8, Variance Result Ready */
 #define AFEINTSRC_CUSTOMINT0        0x00000200  /**<  Bit9,  Custom interrupt source 0. It happens when **sequencer** writes 1 to register AFEGENINTSTA.BIT0 */
 #define AFEINTSRC_CUSTOMINT1        0x00000400  /**<  Bit10, Custom interrupt source 1. It happens when **sequencer** writes 1 to register AFEGENINTSTA.BIT1*/
 #define AFEINTSRC_CUSTOMINT2        0x00000800  /**<  Bit11, Custom interrupt source 2. It happens when **sequencer** writes 1 to register AFEGENINTSTA.BIT2 */
 #define AFEINTSRC_CUSTOMINT3        0x00001000  /**<  Bit12, Custom interrupt source 3. It happens when **sequencer** writes 1 to register AFEGENINTSTA.BIT3 */
 #define AFEINTSRC_BOOTLDDONE        0x00002000  /**<  Bit13, OTP Boot Loading Done */
 #define AFEINTSRC_WAKEUP            0x00004000  /**<  Bit14, AFE Woken up*/
-#define AFEINTSRC_ENDSEQ    	      0x00008000  /**<  Bit15, End of Sequence Interrupt. */
-#define AFEINTSRC_SEQTIMEOUT   	    0x00010000  /**<  Bit16, Sequencer Timeout Command Finished. */
+#define AFEINTSRC_ENDSEQ            0x00008000  /**<  Bit15, End of Sequence Interrupt. */
+#define AFEINTSRC_SEQTIMEOUT        0x00010000  /**<  Bit16, Sequencer Timeout Command Finished. */
 #define AFEINTSRC_SEQTIMEOUTERR     0x00020000  /**<  Bit17, Sequencer Timeout Command Error. */
 #define AFEINTSRC_CMDFIFOFULL       0x00040000  /**<  Bit18, Command FIFO Full Interrupt. */
 #define AFEINTSRC_CMDFIFOEMPTY      0x00080000  /**<  Bit19, Command FIFO Empty */
@@ -3069,10 +3069,10 @@ extern "C" {
 #define AFECTRL_TEMPCNV             (1L<<13)   /**< Start Temperature sensor convert */
 #define AFECTRL_WG                  (1L<<14)   /**< Waveform generator on-off control */
 #define AFECTRL_DFT                 (1L<<15)   /**< DFT engine on-off control */
-#define AFECTRL_SINC2NOTCH          (1L<<16)	  /**< SIN2+Notch block on-off control */
-#define AFECTRL_ALDOLIMIT           (1L<<19)	  /**< ALDO current limit on-off control */
-#define AFECTRL_DACREFPWR           (1L<<20)	  /**< DAC reference buffer power control */ 
-#define AFECTRL_DCBUFPWR            (1L<<21)	  /**< Excitation loop DC offset buffer sourced from LPDAC power control */           
+#define AFECTRL_SINC2NOTCH          (1L<<16)    /**< SIN2+Notch block on-off control */
+#define AFECTRL_ALDOLIMIT           (1L<<19)    /**< ALDO current limit on-off control */
+#define AFECTRL_DACREFPWR           (1L<<20)    /**< DAC reference buffer power control */ 
+#define AFECTRL_DCBUFPWR            (1L<<21)    /**< Excitation loop DC offset buffer sourced from LPDAC power control */           
 #define AFECTRL_ALL                 0x39ffe0   /**< All control signals */           
 /**
  * @}
@@ -4196,7 +4196,7 @@ extern "C" {
 
 #define AD5940_SWRST              0xa158      /**< AD594x only. The value to perform software reset via reigster SWRSTCON */
 #define KEY_OSCCON                0xcb14      /**< key of register OSCCON. The key is auto locked after writing to any other register */
-#define KEY_CALDATLOCK	          0xde87a5af  /**< Calibration key. */
+#define KEY_CALDATLOCK            0xde87a5af  /**< Calibration key. */
 #define KEY_LPMODEKEY             0xc59d6     /**< LP mode key */
 
 #define PARA_CHECK(n)            /** add parameter check, Add DEBUG switch  */
@@ -4748,12 +4748,12 @@ typedef struct
 */
 typedef struct
 {
-	BoolFlag HighPwrMode;
-	uint32_t DftNum;
-	uint32_t DftSrc;
-	uint32_t ADCSinc3Osr;
-	uint32_t ADCSinc2Osr;
-	uint32_t NumClks;
+  BoolFlag HighPwrMode;
+  uint32_t DftNum;
+  uint32_t DftSrc;
+  uint32_t ADCSinc3Osr;
+  uint32_t ADCSinc2Osr;
+  uint32_t NumClks;
 }FreqParams_Type;
 
 /**
@@ -4836,7 +4836,7 @@ AD5940Err AD5940_WUPTTime(uint32_t SeqId, uint32_t SleepTime, uint32_t WakeupTim
 /* 7.1 Clock system */
 void      AD5940_CLKCfg(CLKCfg_Type *pClkCfg);
 void      AD5940_HFOSC32MHzCtrl(BoolFlag Mode32MHz);
-void 			AD5940_HPModeEn(BoolFlag Enable);	/* Switch system clocks to high power mode for EIS >80kHz)*/
+void      AD5940_HPModeEn(BoolFlag Enable); /* Switch system clocks to high power mode for EIS >80kHz)*/
 /* 7.2 AFE Interrupt */
 void      AD5940_INTCCfg(uint32_t AfeIntcSel, uint32_t AFEIntSrc, BoolFlag State);
 uint32_t  AD5940_INTCGetCfg(uint32_t AfeIntcSel);
