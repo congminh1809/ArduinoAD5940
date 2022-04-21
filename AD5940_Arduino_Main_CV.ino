@@ -44,6 +44,7 @@
 *****************************************************************************/
 #include "ad5940.h"
 #include "RampTest.h"
+#include <SPI.h>
 #include <LibPrintf.h> //allows to use c-style print() statement instead of Arduino style Serial.print()
 
 #define PLOT_DATA /* use this macro to output data via serial port for python plotting */
@@ -91,23 +92,13 @@ static int32_t RampShowResult(float *pData, uint32_t DataCount)
 {
 
   static uint32_t index;
-  
-  /* Print data*/
-  //for (int i = 0; i < DataCount * 2; i += 2)
   for (int i = 0; i < DataCount; i++)
   {
-    //pack voltage and current in a byte array
-    uint8_t *byteData = (uint8_t *)pData; //cast pointer to the pData array to a byte pointer
-    //write the bytes to serial port
-    /*Serial.write(i/2);
-    Serial.write(" : |");
-    Serial.write(byteData, 8); //first 4 bytes = voltage, other 4 bytes = current
-    Serial.write("\n");*/
     Serial.print(index++);
     Serial.print("|");
     Serial.println(pData[i]); //first 4 bytes = voltage, other 4 bytes = current
-    //Serial.write(byteData, 8); //first 4 bytes = voltage, other 4 bytes = current
-    //Serial.print("\n");
+    //Serial.print("|");
+    //Serial.println(data[i]);
   }
   return 0;
 }
@@ -204,6 +195,39 @@ void AD5940RampStructInit(void)
   pRampCfg->LPTIARtiaSel = LPTIARTIA_4K;       /* Maximum current decides RTIA value */
   pRampCfg->LPTIARloadSel = LPTIARLOAD_SHORT;
   pRampCfg->AdcPgaGain = ADCPGA_1P5;
+
+#ifdef DEBUG
+  printf("Ramp Parameters:\n");
+  if (pRampCfg->bRampOneDir)
+  {
+    printf("Setup for Linear Sweep Voltammetry!\n");
+  }
+  else
+  {
+    printf("Setup for Cyclic Voltammetry!\n");
+  }
+  printf("- Vstart = %d mV\n", (int)pRampCfg->RampStartVolt);
+  printf("- V1 = %d mV\n", (int)pRampCfg->RampPeakVolt1);
+  printf("- V2 = %d mV\n", (int)pRampCfg->RampPeakVolt2);
+  printf("- Estep = %d mV\n", (int)pRampCfg->Estep);
+  printf("- Scan Rate = %d mV/s\n", (int)pRampCfg->ScanRate);
+  printf("- Number of Cycles = %d\n", (int)pRampCfg->CycleNumber);
+  int Sinc3OSR[] = {2, 4, 5};
+  int Sinc2OSR[] = {22, 44, 89, 178, 267, 533, 640, 667, 800, 889, 1067, 1333};
+  int SampleRate = (int)(800000.0 / Sinc3OSR[pRampCfg->ADCSinc3Osr] / Sinc2OSR[pRampCfg->ADCSinc2Osr] + 0.5);
+  printf("- Sampling Freq (rounded) = %d Sps\n", (int)SampleRate);
+  //check timing parameters
+  //necessary time after each step: DAC code write (~3.1ms for StepsPerBlock = 1) + get remaining FIFO data from last step and process (~3.2ms / 50 samples in FIFO) + print output (~0.5ms)
+  //available time after each step: SampleDelay + min(Estep/ScanRate in ms - SampleDelay, FIFOThresh / fSample)
+  float a = pRampCfg->Estep / pRampCfg->ScanRate * 1000.0 - pRampCfg->SampleDelay;
+  float b = pRampCfg->FifoThresh / ((float)SampleRate) * 1000;
+  //float c = min(a,b);
+  if ((3.1 + 3.2 * pRampCfg->FifoThresh / 50 + 0.5) >=
+      (pRampCfg->SampleDelay + min(a, b)))
+  {
+    printf("WARNING: Timing critical - Increase Estep, decrease ScanRate or adapt FIFO threshold\n");
+  }
+#endif
 }
 
 void AD5940_Main(void)
@@ -235,9 +259,37 @@ void AD5940_Main(void)
       AppRAMPCtrl(APPCTRL_START, 0);  
     }
   }
+
+#ifdef DEBUG
+  printf("All initialized.\n");
+  printf("---start of voltammetry ---\n");
+#endif
+  AppRAMPCtrl(APPCTRL_START, 0); /* Control RAMP measurement to start. Second parameter has no meaning with this command. */
+
+  while (!pRampCfg->bTestFinished)
+  {
+    AppRAMPGetCfg(&pRampCfg);
+    if (AD5940_GetMCUIntFlag())
+    {
+      AD5940_ClrMCUIntFlag();
+      temp = APPBUFF_SIZE;
+      AppRAMPISR(AppBuff, &temp); //temp now holds the number of calculated means (>0, if at least one step was finished within the current data set from FIFO)
+      //print data in case at least one step was finished
+      if (temp > 0)
+      {
+        RampShowResult((float *)AppBuff, temp);
+      }
+    }
+  }
+
+  //end of test
+#ifdef DEBUG
+  printf("---end of ramp test---\n");
+#endif
+
+  //after test finished, reset flag to be able to start new test
+  pRampCfg->bTestFinished = bFALSE;
 }
-
-
 
 //***************************LOOP***************************
 void loop()
