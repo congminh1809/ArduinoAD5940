@@ -1,17 +1,36 @@
+/*
+
+ * 
+ * Typical pin layout used:
+ * -----------------------------------------------------------------------------------------
+ *             MFRC522      Arduino       Arduino   Arduino    Arduino          Arduino
+ *             Reader/PCD   Uno/101       Mega      Nano v3    Leonardo/Micro   Pro Micro
+ * Signal      Pin          Pin           Pin       Pin        Pin              Pin
+ * -----------------------------------------------------------------------------------------
+ * RST/Reset   RST          9             5         D9         RESET/ICSP-5     RST
+ * SPI SS      SDA(SS)      10            53        D10        10               10
+ * SPI MOSI    MOSI         11 / ICSP-4   51        D11        ICSP-4           16
+ * SPI MISO    MISO         12 / ICSP-1   50        D12        ICSP-1           14
+ * SPI SCK     SCK          13 / ICSP-3   52        D13        ICSP-3           15
+ *
+ */
 #include "ad5940.h"
 #include <SPI.h>
 
 //******************which board?*************************
 //#define ADAFRUIT_FEATHER_M0_WIFI
-#define SPARKFUN_REDBOARD_TURBO
+//#define SPARKFUN_REDBOARD_TURBO
 
 //Pin makros depending on target board, can be extended with other boards (check if enough flash memory is available)
 /*#ifdef SPARKFUN_REDBOARD_TURBO
 #define SPI_CS_AD5940_Pin 10
 #define AD5940_ResetPin A3
 #define AD5940_IntPin 2
-#elif defined(ADAFRUIT_FEATHER_M0_WIFI)*/
-#define SPI_CS_AD5940_Pin 10
+#elif defined(ADAFRUIT_FEATHER_M0_WIFI)
+#define SPI_CS_AD5940_Pin A5
+#define AD5940_ResetPin A4
+#define AD5940_IntPin A1*/
+#define SPI_CS_AD5940_Pin 53
 #define AD5940_ResetPin A3
 #define AD5940_IntPin 2
 //#endif
