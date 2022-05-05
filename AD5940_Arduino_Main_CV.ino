@@ -69,6 +69,7 @@ int S_Vol=0;
 int E_Vol=0;
 static int Step=3;
 static int Freq=3;
+static int totalStep = 1000;
 String str = "9,9,9",strS, strE, strStep;
 int moc1;
 int moc2;
@@ -175,17 +176,17 @@ void AD5940RampStructInit(void)
   pRampCfg->SysClkFreq = 16000000.0f;           /* System clock is 16MHz by default */
   pRampCfg->LFOSCClkFreq = LFOSCFreq;           /* LFOSC frequency */
   /* Configure ramp signal parameters */
-  pRampCfg->RampStartVolt =  -1000.0f;           /* -1V */
-  pRampCfg->RampPeakVolt = +1000.0f;           /* +1V */
-  //pRampCfg->RampStartVolt =  S_Vol;           /* -1V */
-  //pRampCfg->RampPeakVolt = E_Vol;           /* +1V */
+  //pRampCfg->RampStartVolt =  -1000.0f;        /* -1V */
+  //pRampCfg->RampPeakVolt = +1000.0f;          /* +1V */
+  pRampCfg->RampStartVolt =  S_Vol;             /* -1V */
+  pRampCfg->RampPeakVolt = E_Vol;               /* +1V */
   pRampCfg->VzeroStart = 1300.0f;               /* 1.3V */
   pRampCfg->VzeroPeak = 1300.0f;                /* 1.3V */
-  pRampCfg->StepNumber = 1000;                /* Total steps. Equals to ADC sample number */
-  //pRampCfg->StepNumber = (E_Vol-S_Vol)/Step;                   /* Total steps. Equals to ADC sample number */
-  pRampCfg->RampDuration = 24*1000;            /* X * 1000, where x is total duration of ramp signal. Unit is ms. */
+  //pRampCfg->StepNumber = 500;                  /* Total steps. Equals to ADC sample number */
+  pRampCfg->StepNumber = totalStep;    /* Total steps. Equals to ADC sample number */
+  pRampCfg->RampDuration = 24*1000;             /* X * 1000, where x is total duration of ramp signal. Unit is ms. */
   pRampCfg->SampleDelay = 7.0f;                 /* 7ms. Time between update DAC and ADC sample. Unit is ms. */
-  pRampCfg->LPTIARtiaSel = LPTIARTIA_4K;       /* Maximum current decides RTIA value */
+  pRampCfg->LPTIARtiaSel = LPTIARTIA_4K;        /* Maximum current decides RTIA value */
   pRampCfg->LPTIARloadSel = LPTIARLOAD_SHORT;
   pRampCfg->AdcPgaGain = ADCPGA_1P5;
 
@@ -288,6 +289,22 @@ void AD5940_Main(void)
 void setup()
 {
   Serial.begin(9600);
+  
+
+  //wait until COM port is opened (e.g. by python)
+  //while (!Serial)
+    //;
+
+  pinMode(3, INPUT_PULLUP); //allow AD5940 to set the LED on this pin
+
+
+  
+}
+
+//***************************LOOP***************************
+void loop()
+{
+  //do nothing forever
   if (Serial.available()) {
         str = Serial.readString(); //Serial đọc chuỗi
         //Serial.println(str);
@@ -309,29 +326,21 @@ void setup()
         strE.remove(moc2);        //Tách giá trị V end ra
         strStep.remove(0, moc2 + 1);   //Tách giá trị Step ra
         //strStep.remove(moc3);          //Tách giá trị Step ra
-        //strF.remove(0, moc3 + 1); //Tách giá trị Frequency ra 
+        //strF.remove(0, moc3= + 1); //Tách giá trị Frequency ra 
         S_Vol = strS.toInt(); //Chuyển strS thành số
         E_Vol = strE.toInt(); //Chuyển strE thành số
         Step = strStep.toInt(); //Chuyển strS thành số
+        totalStep=(abs(E_Vol)+abs(S_Vol))/Step;
         //Freq = strF.toInt(); //Chuyển strS thành số
 
         if(S_Vol>0){
           S_Vol=-S_Vol;
           }
 
-        //Serial.print(Step*3);
-        //Serial.print("|");
-        //Serial.println(Freq*2);
     }
 
-  //wait until COM port is opened (e.g. by python)
-  //while (!Serial)
-    //;
 
-  pinMode(3, INPUT_PULLUP); //allow AD5940 to set the LED on this pin
-
-
-  //init GPIOs (SPI, AD5940 Reset and Interrupt)
+    //init GPIOs (SPI, AD5940 Reset and Interrupt)
   AD5940_MCUResourceInit(0);
 
   //configure AFE
@@ -339,12 +348,7 @@ void setup()
   //init application with pre-defined parameters
   AD5940RampStructInit();
 
+
   //run voltammetry once
   AD5940_Main();
-}
-
-//***************************LOOP***************************
-void loop()
-{
-  //do nothing forever
 }
