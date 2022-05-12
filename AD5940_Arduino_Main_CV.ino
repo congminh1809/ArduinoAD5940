@@ -176,14 +176,14 @@ void AD5940RampStructInit(void)
   pRampCfg->SysClkFreq = 16000000.0f;           /* System clock is 16MHz by default */
   pRampCfg->LFOSCClkFreq = LFOSCFreq;           /* LFOSC frequency */
   /* Configure ramp signal parameters */
-  //pRampCfg->RampStartVolt =  -1000.0f;        /* -1V */
-  //pRampCfg->RampPeakVolt = +1000.0f;          /* +1V */
-  pRampCfg->RampStartVolt =  S_Vol;             /* -1V */
-  pRampCfg->RampPeakVolt = E_Vol;               /* +1V */
+  pRampCfg->RampStartVolt =  -1000.0f;        /* -1V */
+  pRampCfg->RampPeakVolt = +1000.0f;          /* +1V */
+  //pRampCfg->RampStartVolt =  S_Vol;             /* -1V */ 
+  //pRampCfg->RampPeakVolt = E_Vol;               /* +1V */
   pRampCfg->VzeroStart = 1300.0f;               /* 1.3V */
   pRampCfg->VzeroPeak = 1300.0f;                /* 1.3V */
-  //pRampCfg->StepNumber = 500;                  /* Total steps. Equals to ADC sample number */
-  pRampCfg->StepNumber = totalStep;    /* Total steps. Equals to ADC sample number */
+  pRampCfg->StepNumber = 1000;                  /* Total steps. Equals to ADC sample number */
+  //pRampCfg->StepNumber = totalStep;    /* Total steps. Equals to ADC sample number */
   pRampCfg->RampDuration = 24*1000;             /* X * 1000, where x is total duration of ramp signal. Unit is ms. */
   pRampCfg->SampleDelay = 7.0f;                 /* 7ms. Time between update DAC and ADC sample. Unit is ms. */
   pRampCfg->LPTIARtiaSel = LPTIARTIA_4K;        /* Maximum current decides RTIA value */
@@ -338,17 +338,18 @@ void loop()
           }
 
     }
+    
+   //init GPIOs (SPI, AD5940 Reset and Interrupt)
+   AD5940_MCUResourceInit(0);
+
+   //configure AFE
+   AD5940PlatformCfg();
+   //init application with pre-defined parameters
+   AD5940RampStructInit();
 
 
-    //init GPIOs (SPI, AD5940 Reset and Interrupt)
-  AD5940_MCUResourceInit(0);
+   //run voltammetry once
+   AD5940_Main();
 
-  //configure AFE
-  AD5940PlatformCfg();
-  //init application with pre-defined parameters
-  AD5940RampStructInit();
-
-
-  //run voltammetry once
-  AD5940_Main();
+    
 }

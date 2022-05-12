@@ -28,6 +28,7 @@ namespace CsharpInterface
         double datas = 0; //Khai báo biến dữ liệu cảm biến để vẽ đồ thị
 
         int repeatCount = 3;
+        int circle = 1000;
         int numberSample = 1000;
 
         double[] bufferC = new double[16000];
@@ -36,7 +37,6 @@ namespace CsharpInterface
         string[] bufferCStr = new string[16000];
         string[] bufferVStr = new string[16000];
         int recieverCount = 0;
-
 
         public
             Form1()
@@ -82,12 +82,14 @@ namespace CsharpInterface
             {
                 progressBar1.Value = 100;
 
-                progressBarMeasure.Value = (recieverCount) / (numberSample / 99);
-
-                if (progressBarMeasure.Value > 100)
+                if (progressBarMeasure.Value > 99)
                 {
-                    progressBarMeasure.Value = 100;
+                    recieverCount = recieverCount * 96 / 100;
                 }
+
+                progressBarMeasure.Value = (recieverCount) / (numberSample / 96);
+
+                
 
                 if (recieverCount == numberSample)
                 {
@@ -100,11 +102,12 @@ namespace CsharpInterface
                     //Data_Listview();
                     ClearZedGraph();
                     Draw();
+                    btConnect.Text = "Measure Again";
+                    btCheck.Text = "Reconnect";
+                    recieverCount = 0;
 
 
                 }
-                //Draw();
-                //Data_Listview();
                 status = 0;
 
             }
@@ -274,11 +277,52 @@ namespace CsharpInterface
                 {
                     bufferV[i] = (numberSample / repeatCount * (repeatCount - 1)) - bufferV[i];
                     list.Add(bufferV[i], bufferC[i]);
+
                 }
                 //double.TryParse(bufferVStr[i], out bufferV[i]); // Chuyển đổi sang kiểu double
                 //double.TryParse(bufferCStr[i], out bufferC[i]);
                 //list.Add(bufferV[i], bufferC[i]);
             }
+
+
+
+            if (checkBox1.Checked == true)
+            {
+                int temp_1 = circle * 0 + circle / 2 - 1;
+                for (int i = circle * 0; i < circle * 1; i++) 
+                {
+                    if (i <= temp_1)
+                    {
+                        bufferV[i] = bufferV[i] - (numberSample / repeatCount * (repeatCount - 2));
+                        list.Add(bufferV[i], bufferC[i]);
+                    }
+                    if (i > temp_1)
+                    {
+                        bufferV[i] = (numberSample / repeatCount * (repeatCount - 1)) - bufferV[i];
+                        list.Add(bufferV[i], bufferC[i]);
+
+                    }
+                }
+            }
+            if (checkBox2.Checked == true)
+            {
+                int temp_2 = circle * 1 + circle / 2 - 1;
+                for (int i = circle * 1; i < circle * 2; i++)
+                {
+                    if (i <= temp_2)
+                    {
+                        bufferV[i] = bufferV[i] - (numberSample / repeatCount * (repeatCount - 2));
+                        list.Add(bufferV[i], bufferC[i]);
+                    }
+                    if (i > temp_2)
+                    {
+                        bufferV[i] = (numberSample / repeatCount * (repeatCount - 1)) - bufferV[i];
+                        list.Add(bufferV[i], bufferC[i]);
+
+                    }
+                }
+            }
+
 
             Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
             Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
@@ -328,6 +372,7 @@ namespace CsharpInterface
 
             RollingPointPairList list = new RollingPointPairList(60000);
             LineItem curve = myPane.AddCurve("Data", list, Color.Red, SymbolType.None);
+            
 
             myPane.XAxis.Scale.Min = -10;
             myPane.XAxis.Scale.Max = 550;
@@ -428,6 +473,7 @@ namespace CsharpInterface
                 serialPort1.BaudRate = 9600; // Baudrate là 9600, trùng với baudrate của Arduino
                 repeatCount = Convert.ToInt32(txt_Repeat.Text);
                 numberSample = (Convert.ToInt32(txt_EVol.Text) - Convert.ToInt32(txt_SVol.Text)) / Convert.ToInt32(txt_Step.Text) * repeatCount;
+                circle = numberSample / repeatCount;
                 //serialPort1.Write("2"); //Gửi ký tự "2" qua Serial, tương ứng với state = 2
                 //serialPort1.Write("1"); //Gửi ký tự "2" qua Serial, tương ứng với state = 1
                 try
@@ -531,7 +577,7 @@ namespace CsharpInterface
         {
             listView1.Items.Clear(); // Xóa listview
             ClearZedGraph();
-            //ResetValue();
+            progressBarMeasure.Value = 0;
             //Draw();
             //Draw();
             //Data_Listview();
@@ -556,6 +602,338 @@ namespace CsharpInterface
         private void txt_Step_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+            //ClearZedGraph();
+            if (zedGraphControl1.GraphPane.CurveList.Count <= 0)
+                return;
+
+            LineItem curve = zedGraphControl1.GraphPane.CurveList[0] as LineItem;
+            
+
+            if (curve == null)
+                return;
+
+            IPointListEdit list = curve.Points as IPointListEdit;
+
+            if (list == null)
+                return;
+            list.Clear();
+            
+            double[] arrV1 = new double[1600];
+            double[] arrC1 = new double[1600];
+            for (int i = 0; i < circle; i++)
+            {
+                arrV1[i] = bufferV[i];
+                arrC1[i] = bufferC[i];
+            }
+
+            if (checkBox1.Checked == true)
+            {
+                curve.Color = Color.Red;
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                for (int i = 0; i < circle; i++)
+                {
+                    if (i <= circle / 2) 
+                    {
+                        list.Add(arrV1[i], arrC1[i]);
+                    }
+                    if (i > circle / 2)
+                    {
+                        arrV1[i] = circle - arrV1[i];
+                        list.Add(arrV1[i], arrC1[i]);
+
+                    }
+                }
+                Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
+                Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
+
+                xScale.Max = arrV1.Max() + 10;
+                xScale.Min = arrV1.Min() - 10;
+                yScale.Max = arrC1.Max() + 10;
+                yScale.Min = arrC1.Min() - 10;
+
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+            }
+            if (checkBox1.Checked == false)
+            {
+                list.Clear();
+                zedGraphControl1.Refresh();
+            }
+
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            //ClearZedGraph();
+            if (zedGraphControl1.GraphPane.CurveList.Count <= 0)
+                return;
+
+            LineItem curve = zedGraphControl1.GraphPane.CurveList[0] as LineItem;
+            
+            if (curve == null)
+                return;
+
+            IPointListEdit list = curve.Points as IPointListEdit;
+
+            if (list == null)
+                return;
+            list.Clear();
+            
+            double[] arrV2 = new double[1600];
+            double[] arrC2 = new double[1600];
+            for (int i = 0; i < circle; i++)
+            {
+                arrV2[i] = bufferV[i];
+                arrC2[i] = bufferC[i + circle];
+            }
+
+            if (checkBox2.Checked == true)
+            {
+                curve.Color = Color.DarkGreen;
+                checkBox1.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                for (int i = 0; i < circle; i++)
+                {
+                    if (i <= circle / 2)
+                    {
+                        list.Add(arrV2[i], arrC2[i]);
+                    }
+                    if (i > circle / 2)
+                    {
+                        arrV2[i] = circle - arrV2[i];
+                        list.Add(arrV2[i], arrC2[i]);
+
+                    }
+                }
+                Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
+                Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
+
+                xScale.Max = arrV2.Max() + 10;
+                xScale.Min = arrV2.Min() - 10;
+                yScale.Max = arrC2.Max() + 10;
+                yScale.Min = arrC2.Min() - 10;
+
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+            }
+            if (checkBox2.Checked == false)
+            {
+                list.Clear();
+                zedGraphControl1.Refresh();
+            }
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            //ClearZedGraph();
+            if (zedGraphControl1.GraphPane.CurveList.Count <= 0)
+                return;
+
+            LineItem curve = zedGraphControl1.GraphPane.CurveList[0] as LineItem;
+            
+            if (curve == null)
+                return;
+
+            IPointListEdit list = curve.Points as IPointListEdit;
+
+            if (list == null)
+                return;
+            list.Clear();
+            
+            double[] arrV3 = new double[1600];
+            double[] arrC3 = new double[1600];
+            for (int i = 0; i < circle; i++)
+            {
+                arrV3[i] = bufferV[i];
+                arrC3[i] = bufferC[i + circle * 2];
+            }
+
+            if (checkBox3.Checked == true)
+            {
+                curve.Color = Color.BlueViolet;
+                checkBox1.Checked = false;
+                checkBox2.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                for (int i = 0; i < circle; i++)
+                {
+                    if (i <= circle / 2)
+                    {
+                        list.Add(arrV3[i], arrC3[i]);
+                    }
+                    if (i > circle / 2)
+                    {
+                        arrV3[i] = circle - arrV3[i];
+                        list.Add(arrV3[i], arrC3[i]);
+
+                    }
+                }
+                Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
+                Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
+
+                xScale.Max = arrV3.Max() + 10;
+                xScale.Min = arrV3.Min() - 10;
+                yScale.Max = arrC3.Max() + 10;
+                yScale.Min = arrC3.Min() - 10;
+
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+            }
+            if (checkBox3.Checked == false)
+            {
+                list.Clear();
+                zedGraphControl1.Refresh();
+            }
+        }
+
+        private void checkBox4_CheckedChanged(object sender, EventArgs e)
+        {
+            //ClearZedGraph();
+            if (zedGraphControl1.GraphPane.CurveList.Count <= 0)
+                return;
+
+            LineItem curve = zedGraphControl1.GraphPane.CurveList[0] as LineItem;
+            
+            if (curve == null)
+                return;
+
+            IPointListEdit list = curve.Points as IPointListEdit;
+
+            if (list == null)
+                return;
+            list.Clear();
+            
+            double[] arrV4 = new double[1600];
+            double[] arrC4 = new double[1600];
+            for (int i = 0; i < circle; i++)
+            {
+                arrV4[i] = bufferV[i];
+                arrC4[i] = bufferC[i + circle * 3];
+            }
+
+            if (checkBox4.Checked == true)
+            {
+                curve.Color = Color.Chocolate;
+                checkBox1.Checked = false;
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox5.Checked = false;
+                for (int i = 0; i < circle; i++)
+                {
+                    if (i <= circle / 2)
+                    {
+                        list.Add(arrV4[i], arrC4[i]);
+                    }
+                    if (i > circle / 2)
+                    {
+                        arrV4[i] = circle - arrV4[i];
+                        list.Add(arrV4[i], arrC4[i]);
+
+                    }
+                }
+                Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
+                Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
+
+                xScale.Max = arrV4.Max() + 10;
+                xScale.Min = arrV4.Min() - 10;
+                yScale.Max = arrC4.Max() + 10;
+                yScale.Min = arrC4.Min() - 10;
+
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+            }
+            if (checkBox4.Checked == false)
+            {
+                list.Clear();
+                zedGraphControl1.Refresh();
+            }
+        }
+
+        private void checkBox5_CheckedChanged(object sender, EventArgs e)
+        {
+            //ClearZedGraph();
+
+            if (zedGraphControl1.GraphPane.CurveList.Count <= 0)
+                return;
+
+            LineItem curve = zedGraphControl1.GraphPane.CurveList[0] as LineItem;
+            
+            if (curve == null)
+                return;
+
+            IPointListEdit list = curve.Points as IPointListEdit;
+
+            if (list == null)
+                return;
+            list.Clear();
+            
+            double[] arrV5 = new double[1600];
+            double[] arrC5 = new double[1600];
+            for (int i = 0; i < circle; i++)
+            {
+                arrV5[i] = bufferV[i];
+                arrC5[i] = bufferC[i + circle * 4];
+            }
+
+            if (checkBox5.Checked == true)
+            {
+
+                curve.Color = Color.DarkBlue;
+                checkBox1.Checked = false;
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                for (int i = 0; i < circle; i++)
+                {
+                    if (i <= circle / 2)
+                    {
+                        list.Add(arrV5[i], arrC5[i]);
+                    }
+                    if (i > circle / 2)
+                    {
+                        arrV5[i] = circle - arrV5[i];
+                        list.Add(arrV5[i], arrC5[i]);
+
+                    }
+                }
+                Scale xScale = zedGraphControl1.GraphPane.XAxis.Scale;
+                Scale yScale = zedGraphControl1.GraphPane.YAxis.Scale;
+
+                xScale.Max = arrV5.Max() + 10;
+                xScale.Min = arrV5.Min() - 10;
+                yScale.Max = arrC5.Max() + 10;
+                yScale.Min = arrC5.Min() - 10;
+
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+            }
+            if (checkBox5.Checked == false)
+            {
+                list.Clear();
+                zedGraphControl1.Refresh();
+            }
         }
     }
 }
